@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "RustIdeaTest"
+name = "rust_idea_test"
 version = "0.1.0"
