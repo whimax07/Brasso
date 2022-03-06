@@ -1,4 +1,3 @@
-
 pub fn wrap_csv_body(body: &str) -> String {
     let mut header = String::from(get_header());
     header.push_str(body);
