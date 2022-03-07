@@ -69,7 +69,6 @@ impl PrettyPrint for GameState {
 }
 
 
-
 fn set_up_sim() -> Box<GameState> {
     Box::new(GameState{
         grid: [[Symbol::FLOWER; WIDTH]; HEIGHT],
@@ -80,20 +79,23 @@ fn set_up_sim() -> Box<GameState> {
 }
 
 fn form_next_grid(game_state: &mut Box<GameState>) -> bool {
-    // NOTE(Max): How do you do this without cloning?
-    for (i, row) in game_state.grid.clone().iter().enumerate() {
-        for (j, symbol) in row.iter().enumerate() {
-            if symbol == &Symbol::SUN {
+    for row in game_state.grid.iter_mut() {
+        for symbol in row.iter_mut() {
+            if *symbol == Symbol::SUN {
                 continue;
             }
-            game_state.grid[i][j] = Symbol::SUN;
+            *symbol = Symbol::SUN;
+            return true;
         }
     }
+
     return false;
 }
 
 fn run_sim(game_state: &mut Box<GameState>) {
     while form_next_grid(game_state) {
+        println!("{}", game_state.grid.pretty_print());
+        continue;
         todo!()
     }
 }
