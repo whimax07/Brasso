@@ -30,7 +30,7 @@ impl PrettyPrint for Grid {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum Symbol {
-    FLOWER,
+    FLOWER{base: i32, multi: f32},
     SUN
 }
 
