@@ -30,7 +30,7 @@ impl PrettyPrint for Grid {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum Symbol {
-    FLOWER,
+    FLOWER{base: i32, multi: f32},
     SUN
 }
 
@@ -84,6 +84,7 @@ fn form_next_grid(game_state: &mut Box<GameState>) -> bool {
             if *symbol == Symbol::SUN {
                 continue;
             }
+            // Note(Max): Add 1 (or similar) should go here.
             *symbol = Symbol::SUN;
             return true;
         }
