@@ -38,12 +38,12 @@ impl Symbol {
             Symbol::SUN=> *self = Symbol::FIRST_SYMBOL,
             _ => panic!("Please use with a game symbol, one of the predefined const symbols.")
         }
-        return *self == Symbol::FIRST_SYMBOL
+        *self == Symbol::FIRST_SYMBOL
     }
 }
 
 fn flower_multipliers(symbol: Symbol) -> f32 {
-    return match symbol {
+    match symbol {
         Symbol::SUN => 5.,
         _ => 1.,
     }
@@ -81,7 +81,7 @@ impl GameState {
                 if !symbol.next_and_carry() { return true }
             }
         }
-        return false
+        false
     }
 }
 
