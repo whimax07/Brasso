@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "FirstSteps"
+name = "luck_be_a_landlord"
 version = "0.1.0"
 dependencies = [
  "string-builder",
