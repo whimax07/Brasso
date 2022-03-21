@@ -3,7 +3,19 @@ macro_rules! add_score {
     () => {};
 }
 
-macro_rules! loop_thought_2d_array {}
+macro_rules! mut_for_2d {
+    ($sym:ident in $array:expr => $code:block) => {
+        for row in $array.iter_mut() {
+            for $sym in row.iter_mut() {
+                $code
+            }
+        }
+    };
+
+    ($sym:ident in $array:expr => $code:stmt) => {
+        mut_for_2d!($sym in $array => { $code })
+    };
+}
 
 // Define the symbols set.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -83,11 +95,7 @@ impl GameState {
     }
 
     pub fn next_board(&mut self) -> bool {
-        for row in self.board.iter_mut() {
-            for symbol in row.iter_mut() {
-                if !symbol.next_and_carry() { return true }
-            }
-        }
+        mut_for_2d!(symbol in self.board => if !symbol.next_and_carry() { return true } );
         false
     }
 }
@@ -100,12 +108,19 @@ pub fn run_solver() {
     let mut game_state: GameState = GameState::new();
     while GameState::next_board(&mut game_state) {
         // Calculate the score of the board.
+        calc_board_score(&mut game_state);
     }
 
     // Print the results.
 }
 
-fn calc_board_score() {
+fn calc_board_score(game_state: &mut GameState) {
+
+    for (y, row) in game_state.board.iter_mut().enumerate() {
+        for (x, symbol) in row.iter_mut().enumerate() {
+            println!("x: {:?}, y: {:?} and sym: {:?}", x, y, symbol);
+        }
+    }
 
 }
 
