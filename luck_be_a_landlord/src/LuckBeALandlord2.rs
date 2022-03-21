@@ -1,3 +1,10 @@
+// Macros.
+macro_rules! add_score {
+    () => {};
+}
+
+macro_rules! loop_thought_2d_array {}
+
 // Define the symbols set.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Symbol {
@@ -88,7 +95,7 @@ impl GameState {
 type Board = [[Symbol; GameState::WIDTH]; GameState::HEIGHT];
 
 
-fn run_solver() {
+pub fn run_solver() {
     // init the game boards.
     let mut game_state: GameState = GameState::new();
     while GameState::next_board(&mut game_state) {
@@ -96,6 +103,21 @@ fn run_solver() {
     }
 
     // Print the results.
+}
+
+fn calc_board_score() {
+
+}
+
+/// This is a direct way to calc the scores.
+fn calc_symbol_contribution(game_state: GameState, symbol: Symbol, x: usize, y: usize) -> i128 {
+    let mut multipler = 0.0;
+    for row in &game_state.board[y-1..y+2] {
+        for sym in &row[x-1..x+2] {
+            println!("The sym is : {:?}", sym);
+        }
+    }
+    (symbol.base_value as f64 * multipler) as i128
 }
 
 
