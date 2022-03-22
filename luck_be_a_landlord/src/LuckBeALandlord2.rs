@@ -1,6 +1,19 @@
 // Macros.
 macro_rules! add_score {
-    () => {};
+    ($array:ident, $symbol:ident, $width:ident, $height:ident, $x:expr, $y:expr) => {
+        let mut multipler = 1.0;
+        if ($x => 0 && $x < $width && $y => 0 && $y < $height) {
+            let get_multi = $symbol.multi_map;
+            multipler *= get_multi(symbol.array[x][y]);
+        }
+        multipler
+    };
+
+    ($array:ident, $symbol:ident, $width:ident, $height:ident with offsets: $($arguments:tt),+) => {{
+        let mut multipler: f64 = 1;
+        $( multipler *= add_score!($array:ident, $symbol:ident, $width:ident, $height:ident, $arguments); )+
+        multipler
+    }};
 }
 
 macro_rules! mut_for_2d {
@@ -124,15 +137,29 @@ fn calc_board_score(game_state: &mut GameState) {
 
 }
 
-/// This is a direct way to calc the scores.
-fn calc_symbol_contribution(game_state: GameState, symbol: Symbol, x: usize, y: usize) -> i128 {
-    let mut multipler = 0.0;
-    for row in &game_state.board[y-1..y+2] {
-        for sym in &row[x-1..x+2] {
-            println!("The sym is : {:?}", sym);
-        }
-    }
-    (symbol.base_value as f64 * multipler) as i128
+// /// This is a direct way to calc the scores.
+// fn calc_symbol_contribution(game_state: GameState, symbol: Symbol, x: usize, y: usize) -> i128 {
+//     let mut multipler = 0.0;
+//     for row in &game_state.board[y-1..y+2] {
+//         for sym in &row[x-1..x+2] {
+//             println!("The sym is : {:?}", sym);
+//         }
+//     }
+//     (symbol.base_value as f64 * multipler) as i128
+// }
+
+fn calc_symbol_contribution(game_state: GameState, symbol: Symbol, x: i32, y: i32) -> i128 {
+    let multipler = add_score!(game_state.board, symbol, GameState::WIDTH, GameState::HEIGHT with offsets:
+        (x - 1, y - 1);
+        (x - 1, y);
+        (x - 1, y + 1);
+        (x, y - 1);
+        (x, y + 1);
+        (x + 1, y - 1);
+        (x + 1, y);
+        (x + 1, y + 1);
+    );
+    symbol.base_value * multipler
 }
 
 
