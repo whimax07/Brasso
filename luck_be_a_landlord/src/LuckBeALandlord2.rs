@@ -1,17 +1,18 @@
 // Macros.
 macro_rules! add_score {
-    ($array:ident, $symbol:ident, $width:ident, $height:ident, $x:expr, $y:expr) => {
-        let mut multipler = 1.0;
-        if ($x => 0 && $x < $width && $y => 0 && $y < $height) {
+    ($array:expr, $symbol:ident, $width:expr, $height:expr, $x:expr, $y:expr) => {{
+        let mut multipler: f64 = 1.0;
+        if ($x >= 0 && $x < $width && $y >= 0 && $y < $height) {
             let get_multi = $symbol.multi_map;
-            multipler *= get_multi(symbol.array[x][y]);
+            multipler *= get_multi($array[$y as usize][$x as usize]);
         }
         multipler
-    };
+    }};
 
-    ($array:ident, $symbol:ident, $width:ident, $height:ident with offsets: $($arguments:tt),+) => {{
-        let mut multipler: f64 = 1;
-        $( multipler *= add_score!($array:ident, $symbol:ident, $width:ident, $height:ident, $arguments); )+
+    ($array:expr, $symbol:ident, $width:expr, $height:expr, with offsets: $(($x:expr, $y:expr));+) => {{
+        let mut multipler: f64 = 1.0;
+        $( multipler *= add_score!($array, $symbol, $width, $height, $x, $y); )+
+        // $( println!("symbol:{:?}, width:{:?}, height:{:?}, x:{:?} and y:{:?}.", $symbol, $width, $height, $x, $y); )+
         multipler
     }};
 }
@@ -30,6 +31,7 @@ macro_rules! mut_for_2d {
     };
 }
 
+
 // Define the symbols set.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Symbol {
@@ -39,7 +41,7 @@ pub struct Symbol {
     /// Note(Max): Using a function handle here means function calls are needed each time. This
     /// could be slow. Unfortunately I can't think of a (possibly) faster way (to use arrays?) that
     /// is as expressive and easy to catch errors.
-    pub multi_map: fn(effector: Symbol) -> f32,
+    pub multi_map: fn(effector: Symbol) -> f64,
 }
 
 impl Symbol {
@@ -74,14 +76,14 @@ impl Symbol {
     }
 }
 
-fn flower_multipliers(symbol: Symbol) -> f32 {
+fn flower_multipliers(symbol: Symbol) -> f64 {
     match symbol {
         Symbol::SUN => 5.,
         _ => 1.,
     }
 }
 
-fn sun_multipliers(_symbol: Symbol) -> f32 {
+fn sun_multipliers(_symbol: Symbol) -> f64 {
     1.
 }
 
@@ -90,7 +92,6 @@ fn sun_multipliers(_symbol: Symbol) -> f32 {
 struct GameState {
     board: Board,
     best_board: Board,
-    score: i128,
     best_score: i128,
 }
 
@@ -102,8 +103,7 @@ impl GameState {
         Self {
             board: [[Symbol::FIRST_SYMBOL; GameState::WIDTH]; GameState::HEIGHT],
             best_board: [[Symbol::FIRST_SYMBOL; GameState::WIDTH]; GameState::HEIGHT],
-            score: 0,
-            best_score: 0
+            best_score: 0,
         }
     }
 
@@ -121,35 +121,28 @@ pub fn run_solver() {
     let mut game_state: GameState = GameState::new();
     while GameState::next_board(&mut game_state) {
         // Calculate the score of the board.
-        calc_board_score(&mut game_state);
-    }
-
-    // Print the results.
-}
-
-fn calc_board_score(game_state: &mut GameState) {
-
-    for (y, row) in game_state.board.iter_mut().enumerate() {
-        for (x, symbol) in row.iter_mut().enumerate() {
-            println!("x: {:?}, y: {:?} and sym: {:?}", x, y, symbol);
+        let score = calc_board_score(&mut game_state);
+        if score > game_state.best_score {
+            game_state.best_score = score;
         }
     }
 
+    // Print the results.
+    println!("The high score is: {}", game_state.best_score);
 }
 
-// /// This is a direct way to calc the scores.
-// fn calc_symbol_contribution(game_state: GameState, symbol: Symbol, x: usize, y: usize) -> i128 {
-//     let mut multipler = 0.0;
-//     for row in &game_state.board[y-1..y+2] {
-//         for sym in &row[x-1..x+2] {
-//             println!("The sym is : {:?}", sym);
-//         }
-//     }
-//     (symbol.base_value as f64 * multipler) as i128
-// }
+fn calc_board_score(game_state: &mut GameState) -> i128 {
+    let mut score: i128 = 0;
+    for (y, row) in game_state.board.iter().enumerate() {
+        for (x, symbol) in row.iter().enumerate() {
+           score += calc_symbol_contribution(game_state, symbol, x as i32, y as i32);
+        }
+    }
+    score
+}
 
-fn calc_symbol_contribution(game_state: GameState, symbol: Symbol, x: i32, y: i32) -> i128 {
-    let multipler = add_score!(game_state.board, symbol, GameState::WIDTH, GameState::HEIGHT with offsets:
+fn calc_symbol_contribution(game_state: &GameState, symbol: &Symbol, x: i32, y: i32) -> i128 {
+    let multiplier = add_score!(game_state.board, symbol, GameState::WIDTH as i32, GameState::HEIGHT as i32, with offsets:
         (x - 1, y - 1);
         (x - 1, y);
         (x - 1, y + 1);
@@ -157,20 +150,14 @@ fn calc_symbol_contribution(game_state: GameState, symbol: Symbol, x: i32, y: i3
         (x, y + 1);
         (x + 1, y - 1);
         (x + 1, y);
-        (x + 1, y + 1);
+        (x + 1, y + 1)
     );
-    symbol.base_value * multipler
+    (symbol.base_value as f64 * multiplier) as i128
 }
 
 
 // ...
 pub fn main() {
     run_solver();
-    let mut x = Symbol::FLOWER;
-    x.next_and_carry();
-    println!("{:?}", x);
-    x = Symbol::SUN;
-    x.next_and_carry();
-    println!("{:?}", x);
 }
 
