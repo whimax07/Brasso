@@ -135,14 +135,15 @@ fn calc_board_score(game_state: &mut GameState) -> i128 {
     let mut score: i128 = 0;
     for (y, row) in game_state.board.iter().enumerate() {
         for (x, symbol) in row.iter().enumerate() {
-           score += calc_symbol_contribution(game_state, symbol, x as i32, y as i32);
+           score += calc_symbol_contribution_mcro(game_state, symbol, x as i32, y as i32);
         }
     }
     score
 }
 
-fn calc_symbol_contribution(game_state: &GameState, symbol: &Symbol, x: i32, y: i32) -> i128 {
-    let multiplier = add_score!(game_state.board, symbol, GameState::WIDTH as i32, GameState::HEIGHT as i32, with offsets:
+fn calc_symbol_contribution_mcro(game_state: &GameState, symbol: &Symbol, x: i32, y: i32) -> i128 {
+    let multiplier = add_score!(
+        game_state.board, symbol, GameState::WIDTH as i32, GameState::HEIGHT as i32, with offsets:
         (x - 1, y - 1);
         (x - 1, y);
         (x - 1, y + 1);
@@ -152,6 +153,85 @@ fn calc_symbol_contribution(game_state: &GameState, symbol: &Symbol, x: i32, y: 
         (x + 1, y);
         (x + 1, y + 1)
     );
+    (symbol.base_value as f64 * multiplier) as i128
+}
+
+fn calc_symbol_contribution_closures(game_state: &GameState, symbol: &Symbol, x: i32, y: i32)
+        -> i128 {
+    let mut multiplier: f64 = 1.;
+    let board: Board = game_state.board;
+    let multiplier_getter = symbol.multi_map;
+
+    let _in_range = |i, j| {
+        i >= 0 && i < GameState::WIDTH as i32 && j >= 0 && j < GameState::HEIGHT as i32
+    };
+
+    let mut _check_contribution = |i, j| {
+        if _in_range(i, j) {
+            let effector_row: [Symbol; GameState::WIDTH] = board[j as usize];
+            multiplier *= multiplier_getter(effector_row[i as usize]);
+        }
+    };
+
+    _check_contribution(x - 1, y - 1);
+    _check_contribution(x - 1, y);
+    _check_contribution(x - 1, y + 1);
+
+    _check_contribution(x, y - 1);
+    _check_contribution(x, y + 1);
+
+    _check_contribution(x + 1, y - 1);
+    _check_contribution(x + 1, y);
+    _check_contribution(x + 1, y + 1);
+
+    (symbol.base_value as f64 * multiplier) as i128
+}
+
+macro_rules! check_range {
+    ($i:expr, $j:expr) => {
+        $i >= 0 && $i < GameState::WIDTH as i32 && $j >= 0 && $j < GameState::HEIGHT as i32
+    };
+}
+
+fn calc_symbol_contribution_by_hand(game_state: &GameState, symbol: &Symbol, x: i32, y: i32) -> i128 {
+    let mut multiplier: f64 = 1.;
+    let board: Board = game_state.board;
+    let multiplier_getter = symbol.multi_map;
+
+    let _get_symbol_i32 = |i: i32, j: i32| board[j as usize][i as usize];
+
+    if check_range!(x - 1, y - 1) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x - 1, y - 1));
+    }
+
+    if check_range!(x - 1, y) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x - 1, y));
+    }
+
+    if check_range!(x - 1, y + 1) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x - 1, y + 1));
+    }
+
+    if check_range!(x, y - 1) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x, y - 1));
+    }
+
+    if check_range!(x, y + 1) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x, y + 1));
+    }
+
+    if check_range!(x + 1, y - 1) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x + 1, y - 1));
+    }
+
+    if check_range!(x + 1, y) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x + 1, y));
+    }
+
+    if check_range!(x + 1, y + 1) {
+        multiplier *= multiplier_getter(_get_symbol_i32(x + 1, y + 1));
+    }
+
     (symbol.base_value as f64 * multiplier) as i128
 }
 
