@@ -1,9 +1,9 @@
 //noinspection RsModuleNaming
-mod LuckBeALandlord;
+mod luck_be_a_landlord;
 
 
 fn main() {
     println!("main.rs, main(): Start.");
-    LuckBeALandlord::main();
+    luck_be_a_landlord::main();
     println!("main.rs, main(): End.");
 }
