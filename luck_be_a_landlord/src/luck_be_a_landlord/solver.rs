@@ -1,4 +1,7 @@
-use crate::luck_be_a_landlord::calculate_score::calc_symbol_contribution_by_mixed;
+// Note(Max): This is very slow. Maybe as much as 4 and a half times longer to run that the minimal
+// implementation.
+
+use crate::luck_be_a_landlord::calculate_score::{calc_symbol_contribution_by_mixed, calc_symbol_contribution_closures, calc_symbol_contribution_macro};
 
 
 // Macros.
@@ -82,7 +85,7 @@ pub struct GameState {
 
 impl GameState {
     pub(crate) const WIDTH: usize = 5;
-    pub(crate) const HEIGHT: usize = 4;
+    pub(crate) const HEIGHT: usize = 5;
 
     pub fn new() -> Self {
         Self {
@@ -101,6 +104,16 @@ impl GameState {
 pub type Board = [[Symbol; GameState::WIDTH]; GameState::HEIGHT];
 
 
+fn calc_board_score(game_state: &mut GameState) -> i128 {
+    let mut score: i128 = 0;
+    for (y, row) in game_state.board.iter().enumerate() {
+        for (x, symbol) in row.iter().enumerate() {
+            score += calc_symbol_contribution_macro(game_state, symbol, x as i32, y as i32);
+        }
+    }
+    score
+}
+
 // Method code.
 pub fn run_solver() {
     // init the game boards.
@@ -115,14 +128,4 @@ pub fn run_solver() {
 
     // Print the results.
     println!("The high score is: {}", game_state.best_score);
-}
-
-fn calc_board_score(game_state: &mut GameState) -> i128 {
-    let mut score: i128 = 0;
-    for (y, row) in game_state.board.iter().enumerate() {
-        for (x, symbol) in row.iter().enumerate() {
-            score += calc_symbol_contribution_by_mixed(game_state, symbol, x as i32, y as i32);
-        }
-    }
-    score
 }
